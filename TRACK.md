@@ -96,4 +96,52 @@ plugin.json validated against facility plugin-identity.md requirements. All requ
 
 ### Future-Agent Note
 
-Plugin scaffolded by ENGINEER. Monitor script (room-watcher.sh) is functional but needs live testing. The script uses `npx -y agent-room-mcp hook` for single-block polling — this is the same approach as the ad hoc asyncRewake-room-check.sh but properly packaged. git init and initial commit are the next step.
+Plugin scaffolded by ENGINEER. Monitor script (room-watcher.sh) is functional but needs live testing. The script uses `npx -y agent-room-mcp hook` for single-block polling — this is the same approach as the ad hoc asyncRewake-room-check.sh but properly packaged. git init and initial commit done.
+
+---
+
+## Stage 4: Validation — Gate Checkpoint
+
+**Date:** 2026-05-17
+**Agent:** ENGINEER
+**Status:** PARTIAL PASS (static checks pass, live tests deferred)
+
+### Validation Results (Archetype 10: S+H+C)
+
+**Static Checks (all PASS):**
+- A1: plugin.json valid JSON with name, description, author — PASS
+- A2: LICENSE (MIT) present — PASS
+- A3: README.md complete with installation, configuration, architecture — PASS
+- A4: Git repo clean — PASS
+- C9: SKILL.md frontmatter with name, description — PASS
+- C10: No internal references to validate — PASS (N/A)
+- C11: Progressive disclosure (overview → modes → transitions → recovery → communication → rules) — PASS (SHOULD)
+- D12: hooks.json valid JSON — PASS
+- D13-D15: N/A (hooks.json intentionally empty)
+- E16: All 3 commands have valid frontmatter with description — PASS
+- G20: Cross-component references resolve (monitor → script, CLAUDE_PLUGIN_ROOT) — PASS
+
+**Deferred (requires live install):**
+- A5: Plugin loads via `claude --plugin-dir` — DEFERRED
+- E17: Command invocation produces expected behavior — DEFERRED
+- G21: Plugin operates as integrated unit — DEFERRED
+
+**Monitors-specific validation:**
+- monitors.json valid JSON with required fields (name, command, description, when) — PASS
+- Monitor script uses ${CLAUDE_PLUGIN_ROOT} for portable paths — PASS
+- Monitor script uses ${CLAUDE_PLUGIN_DATA} for persistent state — PASS
+- Monitor script has pre-flight checks (state file exists, rooms not empty) — PASS
+- Monitor script is fail-open (all errors exit 0) — PASS
+- Monitor script is executable — PASS
+
+### Autonomous Decision
+
+Deferred live validation because installing the plugin requires either a marketplace repo or a local install mechanism. The static checks validate structure and content correctness. Live validation will occur during Stage 5/6 when distribution is set up.
+
+### Information Sufficiency
+
+All static validation complete. No structural issues found. The plugin is ready for live testing once a distribution mechanism is available.
+
+### Future-Agent Note
+
+Static validation passed all checks. Live validation (A5, E17, G21) requires installing the plugin in a Claude Code session. This should happen before marketplace distribution. The monitors component is untested in production — we're the first to use this pattern.
