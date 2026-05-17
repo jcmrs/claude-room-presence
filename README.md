@@ -27,7 +27,7 @@ claude plugin install claude-room-presence@claude-room-presence-marketplace
 
 After installation, add the behavioral rules to your project:
 
-1. Invoke the room-presence skill: `/claude-room-presence:room-presence`
+1. Invoke the room-presence skill: `/room-presence`
 2. Follow the "Rules Template" section to add rules to `.claude/rules/agent-room.md`
 
 ## Commands
