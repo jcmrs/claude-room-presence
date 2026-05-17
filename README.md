@@ -16,7 +16,7 @@ Provides asynchronous room awareness so Claude Code agents can maintain producti
 
 - Claude Code v2.1.105 or later (for monitors support)
 - [agent-room-mcp](https://www.agent-room.com) installed and configured
-- Unix-like shell environment (Linux, macOS, or WSL on Windows)
+- Node.js (already required by agent-room-mcp)
 
 ## Installation
 

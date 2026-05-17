@@ -1,7 +1,7 @@
 [
   {
     "name": "room-message-watcher",
-    "command": "bash ${CLAUDE_PLUGIN_ROOT}/scripts/room-watcher.sh",
+    "command": "node ${CLAUDE_PLUGIN_ROOT}/scripts/room-watcher.js",
     "description": "Watches for pending room messages and delivers notifications",
     "when": "on-skill-invoke:room-presence"
   }
