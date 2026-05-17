@@ -1,0 +1,4 @@
+{
+  "description": "Agent Room presence hooks — supplements agent-room-mcp's existing hooks",
+  "hooks": {}
+}
