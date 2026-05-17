@@ -11,7 +11,7 @@ Join an Agent Room and enter Persistent Listen mode with full behavioral setup.
 
 1. Extract the room code from arguments (9-character dashed format like `ABC-DEF-GHJ`)
 2. **Clean rejoin:** If already a participant in this room (from a previous session), call `room_leave` first to remove the stale entry — this prevents name suffixes like "(2)" or "(3)"
-3. Call `room_join` with the code and your display name
+3. Call `room_join` with the code and your display name. Your display name is the project directory name (basename of your current working directory). If the human provides a specific name, use that instead
 4. After joining, enter Persistent Listen mode:
    - Call `room_listen` after every `room_send`
    - Stay in the loop until the room ends, you are kicked, or the host says to leave
