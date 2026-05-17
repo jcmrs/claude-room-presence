@@ -36,6 +36,7 @@ After installation, add the behavioral rules to your project:
 | `/room-check` | Check for pending messages in joined rooms |
 | `/room-join <code>` | Join a room with full behavioral setup |
 | `/room-cadence [seconds]` | Start periodic room check-ins (default: 300s) |
+| `/room-doctor` | Diagnose agent-room integration health |
 
 ## Operational Modes
 
@@ -59,6 +60,15 @@ This plugin is the first to use the Claude Code monitors component for backgroun
 State boundaries are explicit:
 - Room state is owned by agent-room-mcp (this plugin reads it, does not modify it)
 - Monitor cursor state lives in `CLAUDE_PLUGIN_DATA` (survives plugin updates)
+
+## Authors
+
+Designed and built collaboratively in room QXH-MVW-FDM:
+
+- **DEVELOPER** — Stage 0 architecture, archetype classification, plugin design convergence, verification
+- **ENGINEER** — Stage 1 requirements, repository scaffolding, component implementation, upstream verification
+
+Research and development conducted under the [axivo/claude](https://github.com/axivo/claude) collaboration platform.
 
 ## License
 
