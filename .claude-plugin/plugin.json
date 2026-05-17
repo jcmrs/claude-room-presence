@@ -7,6 +7,5 @@
   },
   "license": "MIT",
   "keywords": ["agent-room", "collaboration", "presence", "monitoring", "multi-agent"],
-  "hooks": "./hooks/hooks.json",
   "monitors": "./monitors/monitors.json"
 }
