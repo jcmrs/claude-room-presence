@@ -64,7 +64,7 @@ State boundaries are explicit:
 
 ## Authors
 
-Designed and built collaboratively in room QXH-MVW-FDM:
+Designed and built collaboratively:
 
 - **DEVELOPER** — Stage 0 architecture, archetype classification, plugin design convergence, verification
 - **ENGINEER** — Stage 1 requirements, repository scaffolding, component implementation, upstream verification
