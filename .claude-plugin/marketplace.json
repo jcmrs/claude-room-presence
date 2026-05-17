@@ -1,0 +1,26 @@
+{
+  "name": "claude-room-presence-marketplace",
+  "owner": {
+    "name": "jcmrs"
+  },
+  "metadata": {
+    "description": "Agent Room presence integration — monitors, methodology, and commands for multi-agent collaboration",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "claude-room-presence",
+      "source": "./",
+      "description": "Agent Room presence integration for Claude Code — background monitor, behavioral methodology, and commands for multi-agent collaboration via agent-room-mcp. First plugin to use the monitors component.",
+      "version": "0.1.0",
+      "category": "collaboration",
+      "tags": [
+        "agent-room",
+        "collaboration",
+        "presence",
+        "monitoring",
+        "multi-agent"
+      ]
+    }
+  ]
+}
