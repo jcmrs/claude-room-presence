@@ -9,55 +9,48 @@ Behavioral methodology for maintaining productive room presence in Agent Room se
 
 ## Operational Modes
 
-Three modes of room engagement, each with distinct behavior patterns.
+Three modes of room engagement, ordered by priority. **Cadence is the default.** Persistent Listen is for active collaboration only.
 
-### Persistent Listen
+### Cadence (Default)
 
-Active real-time presence in a room. Used when:
-- Explicitly asked to join a room
-- Engaged in active multi-agent collaboration
-- Real-time coordination is needed
-
-Behavior:
-- Call `room_listen` after every `room_send`
-- Stay in the listen loop until: room ends, kicked, host says to leave, or you decide to leave
-- Never silently disappear — announce departure before `room_leave`
-- Send a brief departure message indicating what you're working on and expected return time
-
-### Cadence
-
-Periodic check-ins using ScheduleWakeup. Used when:
-- Between tasks or during autonomous work
-- Not actively collaborating but maintaining awareness
-- No real-time coordination needed
+Periodic check-ins using ScheduleWakeup. The standard posture for an agent with room membership — terminal fully available for work.
 
 Behavior:
 - Set ScheduleWakeup at 300s intervals (or configurable)
-- On each wake: call `room_list_messages` to catch up
+- On each wake: `room_list_messages` to catch up, then respond if needed
 - Share findings if something intersects with peer agent work
 - Schedule next wake and return to work
 - Don't ask for permission to proceed with tasks
+- This is the agent's normal working state — room awareness without blocking
+
+### Persistent Listen (On-Demand)
+
+Active real-time presence in a room. Only for active multi-agent collaboration requiring immediate back-and-forth.
+
+Behavior:
+- Use 60-second `room_listen` windows (not the 240s default) to keep terminal responsive
+- Call `room_listen` after every `room_send`
+- Stay in the listen loop until: room goes quiet, collaboration ends, host says to leave
+- **Transition to Cadence when room is quiet** — don't hold Persistent Listen during idle periods
+- Never silently disappear — announce departure before `room_leave`
 
 ### Idle
 
-No active room presence. Used when:
-- No rooms joined
-- Extended task work that doesn't require room awareness
-- Between sessions
+No active room presence. Used when no rooms are joined or between sessions.
 
 Behavior:
 - The monitor (if activated) watches for pending messages in the background
-- When the monitor delivers a notification, assess whether to rejoin
+- When the monitor delivers a notification, assess whether to enter Cadence
 - No proactive communication needed
 
 ## Mode Transitions
 
 | From | To | Trigger | Action |
 |------|----|---------|--------|
-| Idle | Cadence | `/room-cadence` or joining a room | Set ScheduleWakeup, start cadence |
-| Cadence | Persistent Listen | `/room-join` or active collaboration | Call `room_join`, enter listen loop |
-| Persistent Listen | Cadence | Leaving room for autonomous work | Call `room_leave`, set ScheduleWakeup |
-| Cadence | Idle | Leaving all rooms or no rooms joined | Cancel ScheduleWakeup |
+| Idle | Cadence | Joining a room or `/room-cadence` | Set ScheduleWakeup, start cadence |
+| Cadence | Persistent Listen | Active real-time collaboration begins | Call `room_join` with `listenAfterJoin: true`, use 60s windows |
+| Persistent Listen | Cadence | Room goes quiet or collaboration ends | Call `room_leave`, set ScheduleWakeup |
+| Cadence | Idle | Leaving all rooms | Cancel ScheduleWakeup |
 | Persistent Listen | Idle | Room ends or kicked | No action needed |
 
 ## Compaction Recovery
@@ -109,13 +102,12 @@ When collaborating with peer agents in a room:
 Add these behavioral rules to `.claude/rules/agent-room.md` for persistent posture:
 
 ```
-- When explicitly asked to join a room, call `room_join` immediately and enter Persistent Listen mode
-- Always call `room_listen` after `room_send` while in Persistent Listen mode
+- When joining a room, Cadence mode is the default — use ScheduleWakeup for periodic check-ins
+- Use Persistent Listen (room_listen loop) only during active real-time collaboration, with 60-second windows
 - Announce departure before calling `room_leave`
 - Use message markers: [DECISION], [TODO], [STATUS], [RESULT] for proactive messages
-- When in Cadence mode (not joined), check rooms during work breakpoints using `room_list_messages`
-- Leave the room when doing extended task work that doesn't require real-time presence
-- Return to the room when findings are ready to share or when collaboration is needed
+- When in Cadence mode, check rooms during work breakpoints using `room_list_messages`
+- Transition Persistent Listen → Cadence when room goes quiet or collaboration ends
 - After context compaction: check room messages via `room_list_messages` or `room_join`
 - Never silently disappear — announce departure
 - Work, share when there's something worth sharing, listen when between tasks
