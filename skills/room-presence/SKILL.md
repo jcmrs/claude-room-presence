@@ -65,9 +65,10 @@ Behavior:
 After context compaction, room awareness may be lost. Recovery procedure:
 
 1. Check if `AGENT_ROOM_STATE_FILE` exists and contains room membership
-2. If rooms are in state: call `room_list_messages` to catch up on missed messages
-3. Assess whether to rejoin (Persistent Listen) or switch to Cadence
-4. Never assume room state — always verify from durable state
+2. If rooms are in state: check participants list for your own name — if present (stale from previous session), call `room_leave` first for a clean rejoin
+3. Call `room_list_messages` to catch up on missed messages
+4. Assess whether to rejoin (Persistent Listen) or switch to Cadence
+5. Never assume room state — always verify from durable state
 
 The plugin monitor provides background awareness even when the agent is idle — it delivers notifications when messages are pending.
 
