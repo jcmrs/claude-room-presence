@@ -41,7 +41,9 @@ function readState() {
 function writeState(state) {
   ensureDir();
   state.updatedAt = new Date().toISOString();
-  fs.writeFileSync(STATE_FILE, JSON.stringify(state, null, 2), "utf8");
+  const tmp = STATE_FILE + ".tmp." + process.pid;
+  fs.writeFileSync(tmp, JSON.stringify(state, null, 2), "utf8");
+  fs.renameSync(tmp, STATE_FILE);
 }
 
 function cmdGet(roomCode) {
@@ -85,13 +87,21 @@ function cmdRemove(roomCode) {
 function cmdInit(roomCode, interval, task) {
   const state = readState();
   if (!state.rooms) state.rooms = {};
-  state.rooms[roomCode] = {
+  const defaults = {
     mode: "cadence",
     joined: true,
     cursor: 0,
     interval: parseInt(interval, 10) || 300,
     activeTask: task || "",
+    replyMode: "open",
   };
+  const existing = state.rooms[roomCode] || {};
+  state.rooms[roomCode] = Object.assign({}, defaults, existing, {
+    mode: "cadence",
+    joined: true,
+    interval: parseInt(interval, 10) || existing.interval || 300,
+    activeTask: task || existing.activeTask || "",
+  });
   writeState(state);
   console.log(JSON.stringify(state.rooms[roomCode]));
 }
