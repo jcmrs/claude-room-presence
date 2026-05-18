@@ -190,17 +190,17 @@ Stage 4 fully passed. The duplicate hooks issue was an important discovery: plug
 
 ### Plugin Improvements (owned by DEVELOPER + ENGINEER)
 
-| # | Item | Owner | Description |
-|---|------|-------|-------------|
-| 1 | Soft leave pattern | ENGINEER | Stop listening without leaving room. Eliminates rejoin noise and stale participant accumulation. |
-| 2 | Cadence survival through interruptions | DEVELOPER | ScheduleWakeup prompts must be self-contained AND cadence must resume after interruption. Command should generate prompts automatically. |
-| 3 | Compaction recovery automation | DEVELOPER | Automate: check state file → detect stale participants → clean rejoin → restore cadence with correct cursor. Currently manual procedure in SKILL.md. |
-| 4 | Monitor room-mode polling | ENGINEER | Monitor should detect room mode transitions (open → sequential) so agent adapts without waiting for next check-in. |
-| 5 | Monitor notification path validation | DEVELOPER | Validate that monitor notifications reach the agent during active work, not just during idle. First plugin using monitors — no production precedent. |
-| 6 | Ad hoc unwinding | Shared | Remove .claude/hooks/asyncRewake-room-check.sh and PostToolUse hook from settings.json. Plugin replaces this infrastructure. |
-| 7 | README workflow rewrite | Shared | Lead with agent workflow (join → context → engage → leave), not installation. SKILL.md is substantial — README should guide agents and humans to it. |
-| 8 | Room scope documentation | Shared | Document the 2-3 agent limit for effective collaboration in broadcast-only rooms. Practical limitation from fragility analysis. |
-| 9 | AGENT_ROOM_STATE_FILE documentation | Shared | Add to room-doctor command and README. PPID assumption breaks across compaction; this env var is the fix. |
+| # | Item | Owner | Description | Status |
+|---|------|-------|-------------|--------|
+| 1 | Soft leave pattern | ENGINEER | Stop listening without leaving room. Eliminates rejoin noise and stale participant accumulation. | ✅ Done (2e521e3) |
+| 2 | Cadence survival through interruptions | DEVELOPER | State file at `${CLAUDE_PLUGIN_DATA}/cadence-state.json` with `joined` field. ScheduleWakeup prompts are self-contained and self-healing. | ✅ Done (933be75) |
+| 3 | Compaction recovery automation | DEVELOPER | `/room-check` reads state file → branches on `joined` → catches up → restores cadence. Replaces manual procedure. | ✅ Done (717fdab) |
+| 4 | Monitor room-mode polling | ENGINEER | Monitor should detect room mode transitions (open → sequential) so agent adapts without waiting for next check-in. | |
+| 5 | Monitor notification path validation | DEVELOPER | Validate that monitor notifications reach the agent during active work, not just during idle. First plugin using monitors — no production precedent. | |
+| 6 | Ad hoc unwinding | Shared | Remove .claude/hooks/asyncRewake-room-check.sh and PostToolUse hook from settings.json. Plugin replaces this infrastructure. | |
+| 7 | README workflow rewrite | Shared | Lead with agent workflow (join → context → engage → leave), not installation. SKILL.md is substantial — README should guide agents and humans to it. | |
+| 8 | Room scope documentation | Shared | Document the 2-3 agent limit for effective collaboration in broadcast-only rooms. Practical limitation from fragility analysis. | |
+| 9 | AGENT_ROOM_STATE_FILE documentation | Shared | Add to room-doctor command and README. PPID assumption breaks across compaction; this env var is the fix. | |
 
 ### Upstream Dependencies (tracked as GitHub issues)
 
