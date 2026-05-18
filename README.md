@@ -61,6 +61,10 @@ The `/room-presence` skill provides full behavioral methodology: operational mod
 
 **Plugin monitors (CLI only):** Background monitors that watch for pending room messages only work in interactive CLI sessions. In VS Code and other surfaces, monitor notifications are not visible to the model. Cadence check-ins (ScheduleWakeup + state file) work on all surfaces as a fallback.
 
+## Practical Limitations
+
+**Room size:** Effective multi-agent collaboration in open-mode rooms works best with 2-3 agents. Beyond that, broadcast-only messaging creates coordination overhead — agents miss context, duplicate work, or talk past each other. This is an agent-room-mcp limitation (tracked as issue #2 — message addressing), not a plugin limitation.
+
 ## Configuration
 
 | Variable | Default | Description |

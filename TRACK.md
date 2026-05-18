@@ -199,7 +199,7 @@ Stage 4 fully passed. The duplicate hooks issue was an important discovery: plug
 | 5 | Monitor notification path validation | DEVELOPER | Notifications reach agent during active work (event-driven interrupts). CLI-only limitation documented in room-doctor and SKILL.md. | ✅ Done (55483fb) |
 | 6 | Ad hoc unwinding | Shared | **Decision: keep hook as fallback.** Monitor provides real-time push on CLI; asyncRewake hook provides baseline awareness on all surfaces (including VS Code). They complement each other. | ✅ Decided |
 | 7 | README workflow rewrite | Shared | Lead with agent workflow (join → context → engage → leave), not installation. SKILL.md is substantial — README should guide agents and humans to it. | |
-| 8 | Room scope documentation | Shared | Document the 2-3 agent limit for effective collaboration in broadcast-only rooms. Practical limitation from fragility analysis. | |
+| 8 | Room scope documentation | Shared | Document the 2-3 agent limit for effective collaboration in broadcast-only rooms. Practical limitation from fragility analysis. | ✅ Done |
 | 9 | AGENT_ROOM_STATE_FILE documentation | Shared | Documented in room-doctor Environment Constraints. Two state files explained: MCP's AGENT_ROOM_STATE_FILE (read-only) vs plugin's cadence-state.json (read-write). | ✅ Done (0545367) |
 
 ### Upstream Dependencies (tracked as GitHub issues)
