@@ -186,7 +186,7 @@ Stage 4 fully passed. The duplicate hooks issue was an important discovery: plug
 
 **Branch:** v0.2.0
 **Theme:** Make room presence actually persistent through interruptions, compaction, and real conditions
-**Status:** In Progress
+**Status:** All items done. Ready for v0.2.0 candidate review.
 
 ### Plugin Improvements (owned by DEVELOPER + ENGINEER)
 
@@ -195,10 +195,10 @@ Stage 4 fully passed. The duplicate hooks issue was an important discovery: plug
 | 1 | Soft leave pattern | ENGINEER | Stop listening without leaving room. Eliminates rejoin noise and stale participant accumulation. | ✅ Done (2e521e3) |
 | 2 | Cadence survival through interruptions | DEVELOPER | State file at `${CLAUDE_PLUGIN_DATA}/cadence-state.json` with `joined` field. ScheduleWakeup prompts are self-contained and self-healing. | ✅ Done (933be75) |
 | 3 | Compaction recovery automation | DEVELOPER | `/room-check` reads state file → branches on `joined` → catches up → restores cadence. Replaces manual procedure. | ✅ Done (717fdab) |
-| 4 | Monitor room-mode polling | ENGINEER | Monitor should detect room mode transitions (open → sequential) so agent adapts without waiting for next check-in. | |
+| 4 | Monitor room-mode polling | ENGINEER | Monitor detects replyMode changes via cadence state file. Cadence check-ins persist mode. Agent auto-switches engagement. | ✅ Done (d93318b) |
 | 5 | Monitor notification path validation | DEVELOPER | Notifications reach agent during active work (event-driven interrupts). CLI-only limitation documented in room-doctor and SKILL.md. | ✅ Done (55483fb) |
 | 6 | Ad hoc unwinding | Shared | **Decision: keep hook as fallback.** Monitor provides real-time push on CLI; asyncRewake hook provides baseline awareness on all surfaces (including VS Code). They complement each other. | ✅ Decided |
-| 7 | README workflow rewrite | Shared | Lead with agent workflow (join → context → engage → leave), not installation. SKILL.md is substantial — README should guide agents and humans to it. | |
+| 7 | README workflow rewrite | Shared | Lead with agent workflow (join → context → engage → leave), not installation. SKILL.md is substantial — README should guide agents and humans to it. | ✅ Done (e49ef41) |
 | 8 | Room scope documentation | Shared | Document the 2-3 agent limit for effective collaboration in broadcast-only rooms. Practical limitation from fragility analysis. | ✅ Done |
 | 9 | AGENT_ROOM_STATE_FILE documentation | Shared | Documented in room-doctor Environment Constraints. Two state files explained: MCP's AGENT_ROOM_STATE_FILE (read-only) vs plugin's cadence-state.json (read-write). | ✅ Done (0545367) |
 
@@ -214,8 +214,8 @@ Stage 4 fully passed. The duplicate hooks issue was an important discovery: plug
 
 | # | Item | Owner | Description |
 |---|------|-------|-------------|
-| 13 | Crash-recovery test | ENGINEER | Terminate session without room_leave, then test clean rejoin. Documented but not tested. |
-| 14 | Monitor stress test | ENGINEER | Multiple rooms, concurrent state file access, notification flooding. No production precedent. |
+| 13 | Crash-recovery test | ENGINEER | Terminate session without room_leave, then test clean rejoin. | ✅ Done (50325c7) |
+| 14 | Monitor stress test | ENGINEER | Multiple rooms, concurrent state file access, notification flooding. | ✅ Done (1e7d240) |
 
 ---
 
