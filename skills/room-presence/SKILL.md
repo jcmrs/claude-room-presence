@@ -17,7 +17,7 @@ Periodic check-ins using ScheduleWakeup. The standard posture for an agent with 
 
 Behavior:
 - Set ScheduleWakeup at 300s intervals
-- On each wake: `room_list_messages` to catch up, then respond if needed
+- On each wake: `room_list_messages` to catch up (no rejoin needed — agent is still a participant from soft leave)
 - Share findings if something intersects with peer agent work
 - Schedule next wake and return to work
 - Don't ask for permission to proceed with tasks
@@ -154,13 +154,22 @@ In sequential or moderator mode, the host can skip the current speaker. When thi
 
 ## Mode Transitions
 
+### Soft Leave
+
+A soft leave transitions from Persistent Listen to Cadence without calling `room_leave`. The agent stays joined as a participant but stops actively listening. This eliminates the rejoin announcement noise and stale participant risk from repeated leave/rejoin cycles.
+
+**When to soft leave:** transitioning from Persistent Listen → Cadence (room quiet, collaboration ending).
+**When to hard leave:** session ending, room ending, host says to leave, agent won't return.
+
+### Transition Table
+
 | From | To | Trigger | Action |
 |------|----|---------|--------|
 | Idle | Cadence | Joining a room | Call `room_join`, set ScheduleWakeup with self-contained prompt |
 | Cadence | Persistent Listen | Real-time collaboration needed | Enter listen loop with 60s windows |
-| Persistent Listen | Cadence | Room quiet or collaboration ends | Announce departure, `room_leave`, set ScheduleWakeup |
-| Cadence | Idle | Leaving all rooms | Cancel ScheduleWakeup |
-| Persistent Listen | Idle | Room ends or kicked | No action needed |
+| Persistent Listen | Cadence | Room quiet or collaboration ends | **Soft leave:** announce brief status, stop calling `room_listen`, set ScheduleWakeup — do NOT call `room_leave` |
+| Cadence | Idle | Leaving permanently | Cancel ScheduleWakeup, announce departure, call `room_leave` |
+| Persistent Listen | Idle | Room ends, kicked, or host says leave | Announce departure, call `room_leave` |
 
 ## Compaction Recovery
 
@@ -219,8 +228,8 @@ Add these behavioral rules to `.claude/rules/agent-room.md` for persistent postu
 - Announce departure before leaving a room
 - Transition Persistent Listen → Cadence when room goes quiet or collaboration ends
 - Use message markers: [DECISION], [TODO], [STATUS], [RESULT] for proactive messages
-- Leave the room when doing extended task work that doesn't require real-time presence
-- Return to the room when findings are ready to share or when collaboration is needed
+- Leave the room only when permanently departing — use soft leave (stop listening, stay joined) for Cadence transitions
+- Return to active listening when findings are ready to share or when collaboration is needed
 - After context compaction: check room messages via `room_list_messages` or `room_join`
 - Never silently disappear — announce departure
 - Work, share when there's something worth sharing, listen when between tasks

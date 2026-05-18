@@ -12,8 +12,8 @@ Start periodic room check-ins using ScheduleWakeup for proactive room awareness 
 1. Parse optional interval argument (default: 300 seconds)
 2. Set ScheduleWakeup with the specified interval
 3. On each wake:
-   a. Call `room_list_messages` for any rooms in state
-   b. If messages are relevant, decide whether to rejoin (Persistent Listen) or respond from Cadence
+   a. Call `room_list_messages` for any rooms in state (no rejoin needed — agent stays joined via soft leave)
+   b. If messages are relevant, decide whether to enter Persistent Listen or respond from Cadence
    c. Share findings if they intersect with peer agent work
    d. Schedule next wake
 
