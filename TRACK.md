@@ -217,3 +217,18 @@ Stage 4 fully passed. The duplicate hooks issue was an important discovery: plug
 | 13 | Crash-recovery test | ENGINEER | Terminate session without room_leave, then test clean rejoin. Documented but not tested. |
 | 14 | Monitor stress test | ENGINEER | Multiple rooms, concurrent state file access, notification flooding. No production precedent. |
 
+---
+
+## Future Product Opportunities
+
+### Agent Cadence Pattern (general-purpose)
+
+The cadence pattern discovered during v0.2.0 development is substrate-level, not room-specific. Any agent that needs to maintain awareness of an external system while doing other work can use it:
+
+- **Core pattern:** ScheduleWakeup → wake → check state → respond → re-register
+- **Key technique:** Self-contained prompts that survive compaction (room/system code + mode + task context)
+- **State persistence:** Durable state file that survives the one thing agents can't — statelessness after compaction
+- **Soft engagement:** Stay connected without blocking (soft leave analog for any system)
+
+This could become a standalone capability package: "agent-cadence" — a generic pattern for maintaining persistent agent presence across turn boundaries for any external system (not just rooms). Documented here for future product incubation after v0.2.0 ships.
+
