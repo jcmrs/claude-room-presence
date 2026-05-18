@@ -61,6 +61,7 @@ function cmdGet(roomCode) {
 }
 
 function cmdSet(roomCode, jsonStr) {
+  validateRoomCode(roomCode);
   const state = readState();
   if (!state.rooms) state.rooms = {};
   try {
@@ -74,6 +75,7 @@ function cmdSet(roomCode, jsonStr) {
 }
 
 function cmdRemove(roomCode) {
+  validateRoomCode(roomCode);
   const state = readState();
   if (state.rooms && state.rooms[roomCode]) {
     delete state.rooms[roomCode];
@@ -85,6 +87,7 @@ function cmdRemove(roomCode) {
 }
 
 function cmdInit(roomCode, interval, task) {
+  validateRoomCode(roomCode);
   const state = readState();
   if (!state.rooms) state.rooms = {};
   const defaults = {
@@ -104,6 +107,15 @@ function cmdInit(roomCode, interval, task) {
   });
   writeState(state);
   console.log(JSON.stringify(state.rooms[roomCode]));
+}
+
+const ROOM_CODE_RE = /^[A-Z]{3}-[A-Z]{3}-[A-Z]{3}$/;
+
+function validateRoomCode(code) {
+  if (!code || !ROOM_CODE_RE.test(code)) {
+    console.error("Invalid room code: must match XXX-XXX-XXX (got: " + (code || "(none)") + ")");
+    process.exit(1);
+  }
 }
 
 const args = process.argv.slice(2);

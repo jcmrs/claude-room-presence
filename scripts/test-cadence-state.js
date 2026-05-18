@@ -48,7 +48,7 @@ console.log("cadence-state.js smoke tests\n");
 console.log("1. get on empty state returns {}");
 cleanup();
 {
-  const r = run("get TEST-001");
+  const r = run("get TST-AAA-AAA");
   assert(r.ok, "get succeeds");
   assert(r.out === "{}", `returns {} (got: ${r.out})`);
 }
@@ -56,7 +56,7 @@ cleanup();
 console.log("\n2. init creates entry with defaults");
 cleanup();
 {
-  const r = run("init TEST-001 300 \"test task\"");
+  const r = run("init TST-AAA-AAA 300 \"test task\"");
   assert(r.ok, "init succeeds");
   const entry = JSON.parse(r.out);
   assert(entry.mode === "cadence", "mode is cadence");
@@ -70,11 +70,11 @@ cleanup();
 console.log("\n3. set updates entry");
 cleanup();
 {
-  run("init TEST-001 300 \"initial\"");
-  const r = run("set TEST-001 '{\"mode\":\"cadence\",\"joined\":true,\"cursor\":999,\"interval\":300,\"activeTask\":\"updated\",\"replyMode\":\"sequential\"}'");
+  run("init TST-AAA-AAA 300 \"initial\"");
+  const r = run("set TST-AAA-AAA '{\"mode\":\"cadence\",\"joined\":true,\"cursor\":999,\"interval\":300,\"activeTask\":\"updated\",\"replyMode\":\"sequential\"}'");
   assert(r.ok, "set succeeds");
   assert(r.out === "ok", "returns ok");
-  const g = run("get TEST-001");
+  const g = run("get TST-AAA-AAA");
   const entry = JSON.parse(g.out);
   assert(entry.cursor === 999, "cursor updated to 999");
   assert(entry.replyMode === "sequential", "replyMode updated to sequential");
@@ -83,9 +83,9 @@ cleanup();
 console.log("\n4. re-init preserves existing fields (idempotent — #8, #9)");
 cleanup();
 {
-  run("init TEST-001 300 \"initial\"");
-  run("set TEST-001 '{\"mode\":\"cadence\",\"joined\":true,\"cursor\":552,\"interval\":300,\"activeTask\":\"running\",\"replyMode\":\"sequential\"}'");
-  const r = run("init TEST-001 300 \"new task\"");
+  run("init TST-AAA-AAA 300 \"initial\"");
+  run("set TST-AAA-AAA '{\"mode\":\"cadence\",\"joined\":true,\"cursor\":552,\"interval\":300,\"activeTask\":\"running\",\"replyMode\":\"sequential\"}'");
+  const r = run("init TST-AAA-AAA 300 \"new task\"");
   const entry = JSON.parse(r.out);
   assert(entry.cursor === 552, "cursor preserved (552, not reset to 0)");
   assert(entry.replyMode === "sequential", "replyMode preserved (sequential)");
@@ -96,18 +96,18 @@ cleanup();
 console.log("\n5. remove deletes entry");
 cleanup();
 {
-  run("init TEST-001 300 \"test\"");
-  const r = run("remove TEST-001");
+  run("init TST-AAA-AAA 300 \"test\"");
+  const r = run("remove TST-AAA-AAA");
   assert(r.ok, "remove succeeds");
   assert(r.out === "ok", "returns ok");
-  const g = run("get TEST-001");
+  const g = run("get TST-AAA-AAA");
   assert(g.out === "{}", "entry gone after remove");
 }
 
 console.log("\n6. remove non-existent returns not_found");
 cleanup();
 {
-  const r = run("remove NO-SUCH-ROOM");
+  const r = run("remove NON-EXS-ROM");
   assert(r.ok, "remove succeeds (non-fatal)");
   assert(r.out === "not_found", "returns not_found");
 }
@@ -115,11 +115,11 @@ cleanup();
 console.log("\n7. atomic write produces valid JSON (no temp file left)");
 cleanup();
 {
-  run("init TEST-001 300 \"atomic\"");
+  run("init TST-AAA-AAA 300 \"atomic\"");
   assert(fs.existsSync(STATE_FILE), "state file exists");
   const content = fs.readFileSync(STATE_FILE, "utf8");
   const parsed = JSON.parse(content);
-  assert(parsed.rooms && parsed.rooms["TEST-001"], "valid JSON with room entry");
+  assert(parsed.rooms && parsed.rooms["TST-AAA-AAA"], "valid JSON with room entry");
   // Check no .tmp files
   const files = fs.readdirSync(TMP_DIR).filter(f => f.includes(".tmp."));
   assert(files.length === 0, `no temp files left (${files.length} found)`);
@@ -128,19 +128,19 @@ cleanup();
 console.log("\n8. get without room code returns full state");
 cleanup();
 {
-  run("init ROOM-A 300 \"task a\"");
-  run("init ROOM-B 600 \"task b\"");
+  run("init ROM-AAA-AAA 300 \"task a\"");
+  run("init ROM-BBB-BBB 600 \"task b\"");
   const r = run("get");
   assert(r.ok, "get succeeds");
   const state = JSON.parse(r.out);
-  assert(state.rooms && state.rooms["ROOM-A"] && state.rooms["ROOM-B"], "both rooms present");
+  assert(state.rooms && state.rooms["ROM-AAA-AAA"] && state.rooms["ROM-BBB-BBB"], "both rooms present");
   assert(state.updatedAt, "updatedAt field present");
 }
 
 console.log("\n9. init with no interval defaults to 300");
 cleanup();
 {
-  const r = run("init TEST-001");
+  const r = run("init TST-AAA-AAA");
   const entry = JSON.parse(r.out);
   assert(entry.interval === 300, `interval defaults to 300 (got: ${entry.interval})`);
 }
@@ -149,12 +149,27 @@ console.log("\n10. concurrent set + get (atomic write under fast succession)");
 cleanup();
 {
   for (let i = 0; i < 50; i++) {
-    run(`set TEST-001 '{"mode":"cadence","joined":true,"cursor":${i},"interval":300,"activeTask":"stress","replyMode":"open"}'`);
+    run(`set TST-AAA-AAA '{"mode":"cadence","joined":true,"cursor":${i},"interval":300,"activeTask":"stress","replyMode":"open"}'`);
   }
-  const g = run("get TEST-001");
+  const g = run("get TST-AAA-AAA");
   const entry = JSON.parse(g.out);
   assert(entry.cursor === 49, `final cursor is 49 (got: ${entry.cursor})`);
-  assert(JSON.parse(fs.readFileSync(STATE_FILE, "utf8")).rooms["TEST-001"].cursor === 49, "file on disk matches");
+  assert(JSON.parse(fs.readFileSync(STATE_FILE, "utf8")).rooms["TST-AAA-AAA"].cursor === 49, "file on disk matches");
+}
+
+console.log("\n11. invalid room code rejected");
+cleanup();
+{
+  const r = run("init BAD-CODE 300 \"test\"");
+  assert(!r.ok, "init rejects invalid code");
+  assert(r.err.includes("Invalid room code"), `error mentions invalid code (got: ${r.err.slice(0, 80)})`);
+}
+
+console.log("\n12. empty room code rejected");
+cleanup();
+{
+  const r = run("init \"\" 300 \"test\"");
+  assert(!r.ok, "init rejects empty code");
 }
 
 // --- Summary ---
