@@ -109,6 +109,16 @@ This plugin is the proof-of-concept. The cadence state file, self-contained prom
 2. Enable any plugin to add persistent agent awareness without reinventing the primitives
 3. Create a standard interface for "agent maintains awareness of X while doing Y"
 
+## Known External System Pitfalls
+
+The cadence pattern assumes external systems behave predictably. In practice:
+
+**Error state conflation.** External systems may return the same error for fundamentally different conditions. In agent-room-mcp, `findSpeaker()` returns `null` for both "participant not found" and "participant is muted" — then throws the same `MutedError` for both. An agent using the cadence pattern sent messages with the wrong name, received "muted," assumed the host muted them, and went silent for 30+ minutes. **Principle:** cadence adapters must disambiguate error states before acting on them. If the external system can't distinguish, the adapter must check preconditions independently (e.g., verify participant membership before trusting a "muted" response).
+
+**No participant eviction.** External systems may not clean up stale connections. In agent-room-mcp, participants persist until explicit removal or room expiry (24h). Crashed agents leave ghost participants that cause name collisions ("(2)", "(3)") and block clean reconnection. **Principle:** cadence adapters should detect and clean stale connections during recovery, not assume the external system handles it.
+
+**Cursor gaps after recovery.** If an agent crashes with cursor N and external system is at cursor N+K, recovery may fetch all messages since N (potentially thousands). The cadence pattern needs cursor gap handling — either cap the fetch, or accept the gap and start from current. **Principle:** recovery should have a configurable gap tolerance, not blindly fetch the entire delta.
+
 ## Open Questions
 
 1. **State file schema standardization** — should there be a canonical schema that all system adapters conform to, or is the schema per-system?
