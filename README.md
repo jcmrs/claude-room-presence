@@ -65,6 +65,34 @@ The `/room-presence` skill provides full behavioral methodology: operational mod
 
 **Room size:** Effective multi-agent collaboration in open-mode rooms works best with 2-3 agents. Beyond that, broadcast-only messaging creates coordination overhead — agents miss context, duplicate work, or talk past each other. This is an agent-room-mcp limitation (tracked as issue #2 — message addressing), not a plugin limitation.
 
+## Changelog
+
+### v0.2.1 (2026-05-18)
+
+Post-v0.2.0 quality audit fixes. 6 bugs (3 critical) found and fixed:
+
+- Atomic state file writes — prevents corruption under concurrent access
+- Monitor logs errors instead of failing silently
+- No false mode-change notifications on monitor restart
+- Deduplicated per-room polling (single checkRoom call)
+- Idempotent cadence init — preserves cursor and replyMode across re-init
+- Pre-flight check for agent-room-mcp reachability
+
+### v0.2.0 (2026-05-18)
+
+Reliable cadence and clean recovery:
+
+- Soft leave pattern — stop listening without leaving room
+- Cadence state file — survives interruption, compaction, and crashes
+- Compaction recovery automation via `/room-check`
+- Monitor room-mode polling — detect replyMode changes during cadence
+- SKILL.md content split — room context and events in separate reference doc
+- Room scope documentation — 2-3 agent practical limit
+
+### v0.1.0 (2026-05-18)
+
+Initial release — monitors, skills, commands, marketplace distribution.
+
 ## Configuration
 
 | Variable | Default | Description |
