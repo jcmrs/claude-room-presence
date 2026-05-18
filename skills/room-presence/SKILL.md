@@ -234,7 +234,7 @@ Add to `.claude/rules/agent-room.md` for persistent posture:
 - After compaction: read cadence state file → check `joined` → `room_list_messages` or `room_join`
 - After joining: check `replyMode`, `myRoleInTurn`, `canISpeakNow`
 - Sequential + you are lead → Persistent Listen; Moderator + you are moderator → Persistent Listen
-- Muted (`sent: false, error: "muted"`): do not retry, do not announce
+- Muted (`sent: false, error: "muted"`): verify name matches participant list first, then do not retry
 - Direct-invoked: respond to specific task, return to normal mode
 - Turn skipped: continue in current mode, do not reclaim
 - Message markers: [DECISION] [TODO] [STATUS] [RESULT]
