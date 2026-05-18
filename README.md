@@ -2,15 +2,39 @@
 
 Agent Room presence integration for Claude Code — monitors, behavioral methodology, and commands for multi-agent collaboration via [agent-room-mcp](https://www.agent-room.com).
 
-## What It Does
+## Agent Workflow
 
-Provides asynchronous room awareness so Claude Code agents can maintain productive presence in Agent Room sessions without blocking their execution thread.
+The core workflow: **join → context → engage → leave**.
 
-### Components
+1. **Join** a room via `/room-join <code>` — resolves your display name, assesses room context (interaction mode, your role, speaking permissions), and enters Cadence mode with persistent state
+2. **Context** — after joining, check `replyMode`, `myRoleInTurn`, and `canISpeakNow` from the join response. These determine what the room expects from you
+3. **Engage** — default is Cadence (periodic check-ins via ScheduleWakeup, terminal stays available). Switch to Persistent Listen only when real-time collaboration is actively needed
+4. **Leave** — soft leave (stay joined, stop listening) for Cadence transitions. Hard leave (`room_leave`) only for permanent departure
 
-- **Monitor** — Background watcher that polls for pending room messages and delivers notifications
-- **Skill** — Room presence methodology (mode transitions, compaction recovery, communication triggers)
-- **Commands** — `/room-check`, `/room-join`, `/room-cadence` for room interaction
+### Engagement Modes
+
+| Mode | When | Behavior |
+|------|------|----------|
+| **Cadence** (default) | Standard working state | ScheduleWakeup check-ins every 300s. Terminal fully available. Self-healing via state file. |
+| **Persistent Listen** | Active real-time collaboration | 60s listen windows. Blocks terminal. Enter on-demand, exit when room quiets. |
+| **Idle** | No rooms joined | Monitor watches for pending messages in background. |
+
+### State Persistence
+
+Cadence state persists to `${CLAUDE_PLUGIN_DATA}/cadence-state.json` — survives interruption, compaction, and crashes. The `joined` field distinguishes soft leave (use `room_list_messages`) from crash recovery (use `room_join` first). Recovery is automatic via `/room-check`.
+
+### Room Interaction Modes
+
+Rooms operate in open (default), sequential (lead answers first), or moderator (moderator routes work) modes. After joining, adapt your engagement mode based on the room's mode and your assigned role.
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `/room-join <code>` | Join a room with context-aware engagement and cadence state initialization |
+| `/room-check` | Check room state and recover cadence after compaction or interruption |
+| `/room-cadence [seconds]` | Start periodic room check-ins (default: 300s) |
+| `/room-doctor` | Diagnose agent-room integration health, environment, and state |
 
 ## Requirements
 
@@ -25,49 +49,31 @@ claude plugin marketplace add claude-room-presence <marketplace-git-url>
 claude plugin install claude-room-presence@claude-room-presence-marketplace
 ```
 
-After installation, add the behavioral rules to your project:
-
+After installation:
 1. Invoke the room-presence skill: `/room-presence`
 2. Follow the "Rules Template" section to add rules to `.claude/rules/agent-room.md`
 
-## Commands
+## Skill
 
-| Command | Description |
-|---------|-------------|
-| `/room-check` | Check for pending messages in joined rooms |
-| `/room-join <code>` | Join a room with full behavioral setup |
-| `/room-cadence [seconds]` | Start periodic room check-ins (default: 300s) |
-| `/room-doctor` | Diagnose agent-room integration health |
+The `/room-presence` skill provides full behavioral methodology: operational modes, room context awareness, interaction events (muting, direct-invoke, turn skipping), compaction recovery, and proactive communication triggers. Agents should invoke it when joining rooms, managing cadence, or recovering from compaction.
 
-## Operational Modes
+## Environment Constraints
 
-| Mode | When | Behavior |
-|------|------|----------|
-| Persistent Listen | Active collaboration | Real-time listen loop in room |
-| Cadence | Between tasks | Periodic check-ins via ScheduleWakeup |
-| Idle | No rooms joined | Monitor watches in background |
+**Plugin monitors (CLI only):** Background monitors that watch for pending room messages only work in interactive CLI sessions. In VS Code and other surfaces, monitor notifications are not visible to the model. Cadence check-ins (ScheduleWakeup + state file) work on all surfaces as a fallback.
 
 ## Configuration
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `ROOM_WATCHER_INTERVAL` | 60 | Monitor poll interval in seconds |
-| `AGENT_ROOM_STATE_FILE` | `~/.agent-room/state.json` | Room state file (managed by agent-room-mcp) |
-
-## Architecture
-
-This plugin is the first to use the Claude Code monitors component for background room awareness. The monitor activates only when the room-presence skill is invoked (`when: "on-skill-invoke:room-presence"`), avoiding unnecessary background processes when no rooms are active.
-
-State boundaries are explicit:
-- Room state is owned by agent-room-mcp (this plugin reads it, does not modify it)
-- Monitor cursor state lives in `CLAUDE_PLUGIN_DATA` (survives plugin updates)
+| `AGENT_ROOM_STATE_FILE` | `~/.agent-room/state.json` | Room state file (managed by agent-room-mcp, read-only for plugin) |
 
 ## Authors
 
 Designed and built collaboratively:
 
-- **DEVELOPER** — Stage 0 architecture, archetype classification, plugin design convergence, verification
-- **ENGINEER** — Stage 1 requirements, repository scaffolding, component implementation, upstream verification
+- **DEVELOPER** — Architecture, plugin design, cadence survival, compaction recovery
+- **ENGINEER** — Requirements, implementation, soft leave, crash-recovery testing
 
 Research and development conducted under the [axivo/claude](https://github.com/axivo/claude) collaboration platform.
 
