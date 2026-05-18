@@ -18,7 +18,7 @@ Periodic check-ins using ScheduleWakeup. The standard posture for an agent with 
 Behavior:
 - Initialize cadence state via `node ${CLAUDE_PLUGIN_ROOT}/scripts/cadence-state.js init <room-code> <interval> "<task>"`
 - Set ScheduleWakeup at 300s intervals with self-contained prompt
-- On each wake: read state file → check `joined` field → `room_list_messages` (if joined) or `room_join` (if not) → catch up → update cursor → schedule next wake
+- On each wake: read state file → check `joined` field → `room_list_messages` (if joined) or `room_join` (if not) → catch up → extract `modeAtSend` from latest message to update `replyMode` → update cursor → schedule next wake
 - Share findings if something intersects with peer agent work
 - Don't ask for permission to proceed with tasks
 - This is the agent's normal working state — room awareness without blocking
@@ -112,9 +112,8 @@ After joining a room:
 ### Current Limitations (v0.2.0)
 
 - Plugin monitors (background room message watcher) only work in **interactive CLI sessions**. In VS Code and other surfaces, monitor notifications are not visible to the model. Cadence check-ins (ScheduleWakeup + state file) work on all surfaces.
-- The plugin does not auto-detect room mode and switch engagement mode — you must check and adapt manually
+- The monitor detects room mode changes via cadence state file `replyMode` field — but only updates during cadence check-ins, not in real-time
 - Sequential and moderator mode timeout handling is not in the plugin — you must manage your own response timing
-- Room mode transitions mid-session are not detected — if the host switches from open to sequential while you are in Cadence, you will not be notified until your next check-in
 
 ## Interaction Events
 

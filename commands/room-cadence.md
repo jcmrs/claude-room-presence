@@ -20,9 +20,11 @@ Start periodic room check-ins using ScheduleWakeup for proactive room awareness 
    a. Run `node ${CLAUDE_PLUGIN_ROOT}/scripts/cadence-state.js get <room-code>` to read current state
    b. If `joined: true` → call `room_list_messages` directly (soft leave, still a participant)
    c. If `joined: false` or no state → call `room_join` first (recovery path), then update state
-   d. If messages are relevant, decide whether to enter Persistent Listen or respond from Cadence
-   e. Share findings if they intersect with peer agent work
-   f. Update cursor in state file and schedule next wake
+   d. Parse `modeAtSend` from the latest message metadata to detect current room mode. If no messages, assume mode is unchanged. If mode differs from state file, update state with: `node ${CLAUDE_PLUGIN_ROOT}/scripts/cadence-state.js set <room-code> '<json-with-updated-replyMode>'`
+   e. If room mode changed from open → sequential and you are lead, or open → moderator and you are moderator, switch to Persistent Listen immediately
+   f. If messages are relevant, decide whether to enter Persistent Listen or respond from Cadence
+   g. Share findings if they intersect with peer agent work
+   h. Update cursor and replyMode in state file, then schedule next wake
 
 ## Self-Contained Cadence Prompt Template
 
@@ -59,7 +61,8 @@ The cadence state file lives at `${CLAUDE_PLUGIN_DATA}/cadence-state.json`. Sche
       "joined": true,
       "cursor": 508,
       "interval": 300,
-      "activeTask": "implementation"
+      "activeTask": "implementation",
+      "replyMode": "open"
     }
   },
   "updatedAt": "2026-05-18T05:00:00Z"
