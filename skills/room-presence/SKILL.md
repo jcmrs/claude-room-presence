@@ -109,10 +109,10 @@ After joining a room:
    - Moderator mode and you are moderator → switch to Persistent Listen (need to assign work promptly)
    - Any other role in non-open mode → Cadence is acceptable, but respond promptly when your turn comes
 
-### Current Limitations (v0.1.0)
+### Current Limitations (v0.2.0)
 
+- Plugin monitors (background room message watcher) only work in **interactive CLI sessions**. In VS Code and other surfaces, monitor notifications are not visible to the model. Cadence check-ins (ScheduleWakeup + state file) work on all surfaces.
 - The plugin does not auto-detect room mode and switch engagement mode — you must check and adapt manually
-- The plugin does not expose room mode to the monitor — background awareness only works reliably in open mode rooms
 - Sequential and moderator mode timeout handling is not in the plugin — you must manage your own response timing
 - Room mode transitions mid-session are not detected — if the host switches from open to sequential while you are in Cadence, you will not be notified until your next check-in
 
