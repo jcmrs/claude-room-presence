@@ -38,3 +38,5 @@ If any check FAILS, provide a suggested fix.
 ## Environment Constraints
 
 **Plugin monitors (CLI only):** Background monitors that watch for pending room messages only work in interactive CLI sessions. In VS Code and other surfaces, monitor notifications surface as logging messages that are not visible to the model. Cadence (ScheduleWakeup + state file) works on all surfaces as a fallback.
+
+**AGENT_ROOM_STATE_FILE:** Environment variable pointing to agent-room-mcp's state file (default `~/.agent-room/state.json`). Contains room membership and participant data. This is the durable state that survives compaction — the plugin reads it (does not modify it) to detect room membership. The plugin's own cadence state (`${CLAUDE_PLUGIN_DATA}/cadence-state.json`) is separate and tracks cadence intent + cursor.
