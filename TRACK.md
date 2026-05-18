@@ -253,7 +253,7 @@ All v0.2.0 items shipped. All v0.2.1 audit items fixed. Details preserved in git
 
 | # | Item | Owner | Description | Status |
 |---|------|-------|-------------|--------|
-| 15 | Stale participant detection | DEVELOPER | room-doctor check that compares participant list age vs reasonable TTL. Plugin-side mitigation for upstream #1. | |
+| 15 | Stale participant detection | DEVELOPER | room-doctor check #9 flags participants silent 30+ min. Plugin-side mitigation for upstream #1. | ✅ Done (c55ec5d) |
 | 16 | Agent cadence pattern spec | DEVELOPER | Design document for general-purpose cadence pattern as standalone capability package. | ✅ Done (docs + references) |
 
 ### Upstream Dependencies (tracked as GitHub issues)
