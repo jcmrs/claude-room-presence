@@ -2,7 +2,7 @@
 
 **Product:** claude-room-presence
 **Archetype:** 10 (Skills + Hooks + Commands) with Monitors
-**Status:** v0.2.0 Development (branch: v0.2.0)
+**Status:** v0.2.1 Shipped
 **v0.1.0 tag:** 8a12479 (2026-05-18)
 
 ---
@@ -182,11 +182,54 @@ Stage 4 fully passed. The duplicate hooks issue was an important discovery: plug
 
 ---
 
-## v0.2.0 Backlog — "Reliable Cadence + Clean Recovery"
+## v0.2.0 — Released 2026-05-18
 
-**Branch:** v0.2.0
-**Theme:** Make room presence actually persistent through interruptions, compaction, and real conditions
-**Status:** All items done. Ready for v0.2.0 candidate review.
+**Tag:** v0.2.0 (3b30b2c)
+**Theme:** Reliable Cadence + Clean Recovery
+**Status:** Shipped
+
+All 14 backlog items completed. See commit history for details.
+
+---
+
+## v0.2.1 — Released 2026-05-18
+
+**Tag:** v0.2.1 (152bcbc)
+**Theme:** Post-v0.2.0 quality audit fixes
+**Status:** Shipped
+
+Quality audit by ENGINEER found 6 bugs (3 critical). Both DEVELOPER and ENGINEER independently converged on fixes.
+
+| # | Bug | Severity | Fix | Commit |
+|---|-----|----------|-----|--------|
+| 4 | Non-atomic state file write | Critical | Atomic write via temp file + rename | 3dae7a1 |
+| 5 | Monitor swallows all errors | Critical | Log stderr on failure | 152bcbc |
+| 6 | False mode-change on restart | Critical | Persist prev-modes on first population | 152bcbc |
+| 7 | Redundant per-room polling | Standard | Single checkRoom call | 152bcbc |
+| 8 | cmdInit overwrites replyMode | Standard | Merge with existing entry | 3dae7a1 |
+| 9 | Double-init resets cursor | Standard | Idempotent init preserves cursor | 3dae7a1 |
+
+---
+
+## Active Backlog — v0.3.0
+
+**Branch:** v0.3.0 (TBD)
+**Theme:** Defensive capability + upstream mitigation
+
+### Plugin Improvements
+
+| # | Item | Owner | Description | Status |
+|---|------|-------|-------------|--------|
+| 15 | Stale participant detection | DEVELOPER | room-doctor check that compares participant list age vs reasonable TTL. Surfaces warning when stale participants detected. Plugin-side mitigation for upstream #1. | |
+| 16 | Agent cadence pattern spec | DEVELOPER | Design document for general-purpose cadence pattern as standalone capability package. Not code — spec for product incubation. | |
+
+### Upstream Dependencies (tracked as GitHub issues)
+
+| # | Item | Issue | Priority |
+|---|------|-------|----------|
+| 10 | Participant TTL/heartbeat | #1 | High — stale participants from crashes are a live problem |
+| 11 | Message addressing | #2 | Medium — broadcast-only scales poorly beyond 3 agents |
+| 12 | Cross-room inbox | #3 | Low — nice-to-have |
 
 ### Plugin Improvements (owned by DEVELOPER + ENGINEER)
 
