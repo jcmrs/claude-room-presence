@@ -18,6 +18,7 @@ Run these checks in order and report results:
 6. **Required tools** — verify `npx` and `node` are available in PATH
 7. **Plugin enabled** — check if the plugin appears in the session's active plugins
 8. **Cadence state** — check `${CLAUDE_PLUGIN_DATA}/cadence-state.json` exists and has room entries if agent has active cadence
+9. **Stale participants** — if joined to any room, check recent messages (last 50) for participant activity. Flag any participant with no messages in the last 30 minutes as potentially stale. This is a plugin-side mitigation for upstream issue #1 (participant TTL/heartbeat not implemented in agent-room-mcp)
 
 ## Output Format
 
@@ -31,6 +32,7 @@ Report each check as PASS or FAIL with brief explanation:
 [room-doctor] required tools: PASS (node, npx available)
 [room-doctor] plugin enabled: PASS
 [room-doctor] cadence state: PASS (1 room with active cadence)
+[room-doctor] stale participants: WARN (ENGINEER — no activity in 45 min, may be stale)
 ```
 
 If any check FAILS, provide a suggested fix.
