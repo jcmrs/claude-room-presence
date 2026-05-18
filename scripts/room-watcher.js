@@ -83,7 +83,10 @@ function checkRoom(stateFilePath) {
       stdio: ["pipe", "pipe", "pipe"],
     });
     return output;
-  } catch {
+  } catch (e) {
+    if (e.stderr) {
+      console.error("[agent-room-watcher] hook stderr: " + e.stderr.slice(0, 200));
+    }
     return "";
   }
 }
@@ -95,15 +98,12 @@ function poll() {
   const roomCodes = getRoomCodes(state);
   if (roomCodes.length === 0) return;
 
-  // Check for pending messages
-  for (const code of roomCodes) {
-    const output = checkRoom(STATE_FILE);
-    if (output.includes('"decision"') && output.includes('"block"')) {
-      const reasonMatch = output.match(/"reason"\s*:\s*"([^"]*)"/);
-      const reason = reasonMatch ? reasonMatch[1] : "Messages pending";
-      // Each stdout line is delivered as a notification by the monitor system
-      console.log("[agent-room] " + reason);
-    }
+  // Check for pending messages — call once, not per-room
+  const output = checkRoom(STATE_FILE);
+  if (output.includes('"decision"') && output.includes('"block"')) {
+    const reasonMatch = output.match(/"reason"\s*:\s*"([^"]*)"/);
+    const reason = reasonMatch ? reasonMatch[1] : "Messages pending";
+    console.log("[agent-room] " + reason);
   }
 
   // Check room mode from cadence state file
@@ -123,6 +123,7 @@ function checkRoomMode(roomCodes) {
   }
 
   let changed = false;
+  let needsWrite = false;
   for (const code of roomCodes) {
     const entry = cadence.rooms[code];
     if (!entry || !entry.replyMode) continue;
@@ -133,10 +134,13 @@ function checkRoomMode(roomCodes) {
       );
       changed = true;
     }
+    if (!prevModes[code]) {
+      needsWrite = true;
+    }
     prevModes[code] = entry.replyMode;
   }
 
-  if (changed) {
+  if (changed || needsWrite) {
     try {
       fs.writeFileSync(prevModesFile, JSON.stringify(prevModes, null, 2), "utf8");
     } catch {
