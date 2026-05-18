@@ -26,11 +26,11 @@ Behavior:
 
 **State file:** `${CLAUDE_PLUGIN_DATA}/cadence-state.json` — persists cadence intent across interruptions and compaction. The `joined` field distinguishes soft-leave (still a participant, use `room_list_messages`) from crash recovery (lost membership, use `room_join` first).
 
-**Self-contained prompts:** Each ScheduleWakeup prompt must contain everything needed for re-entry after compaction — room code, current mode, active task context, and instruction to read state file. Example:
+**Self-contained prompts:** Each ScheduleWakeup prompt must contain everything needed for re-entry after compaction — room code, current mode, active task context, and instruction to read state file. **Never embed cursor values** — they go stale between scheduling and waking. Reference the state file instead. Example:
 ```
 Cadence wake for room QXH-MVW-FDM. Mode: Cadence. Task: implementing v0.2.0.
 1. Run: node ${CLAUDE_PLUGIN_ROOT}/scripts/cadence-state.js get QXH-MVW-FDM
-2. If joined: room_list_messages since last cursor
+2. If joined: room_list_messages since last cursor in state file
 3. If not joined: room_join first, then room_list_messages
 4. Respond if needed, update cursor, schedule next wake
 ```

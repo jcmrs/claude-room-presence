@@ -26,12 +26,12 @@ Start periodic room check-ins using ScheduleWakeup for proactive room awareness 
 
 ## Self-Contained Cadence Prompt Template
 
-Each ScheduleWakeup prompt must be fully self-contained for compaction recovery:
+Each ScheduleWakeup prompt must be fully self-contained for compaction recovery. **Never embed cursor values** — reference the state file as source of truth. Cursor changes between scheduling and waking; the state file is always current.
 
 ```
 Cadence wake for room <ROOM-CODE>. Mode: Cadence. Task: <task>.
 1. Run: node ${CLAUDE_PLUGIN_ROOT}/scripts/cadence-state.js get <ROOM-CODE>
-2. If joined: room_list_messages since last cursor
+2. If joined: room_list_messages since last cursor in state file
 3. If not joined: room_join first, then room_list_messages
 4. Respond if needed, update cursor, schedule next wake
 ```
