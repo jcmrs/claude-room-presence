@@ -16,16 +16,23 @@ Three modes of room engagement. **Cadence is the default.** Persistent Listen is
 Periodic check-ins using ScheduleWakeup. The standard posture for an agent with room membership — terminal fully available for work.
 
 Behavior:
-- Set ScheduleWakeup at 300s intervals
-- On each wake: `room_list_messages` to catch up (no rejoin needed — agent is still a participant from soft leave)
+- Initialize cadence state via `node ${CLAUDE_PLUGIN_ROOT}/scripts/cadence-state.js init <room-code> <interval> "<task>"`
+- Set ScheduleWakeup at 300s intervals with self-contained prompt
+- On each wake: read state file → check `joined` field → `room_list_messages` (if joined) or `room_join` (if not) → catch up → update cursor → schedule next wake
 - Share findings if something intersects with peer agent work
-- Schedule next wake and return to work
 - Don't ask for permission to proceed with tasks
 - This is the agent's normal working state — room awareness without blocking
+- When stopping cadence: `node ${CLAUDE_PLUGIN_ROOT}/scripts/cadence-state.js remove <room-code>`
 
-**Self-contained prompts:** Each ScheduleWakeup prompt must contain everything needed for re-entry after compaction — room code, current mode, active task context. Example:
+**State file:** `${CLAUDE_PLUGIN_DATA}/cadence-state.json` — persists cadence intent across interruptions and compaction. The `joined` field distinguishes soft-leave (still a participant, use `room_list_messages`) from crash recovery (lost membership, use `room_join` first).
+
+**Self-contained prompts:** Each ScheduleWakeup prompt must contain everything needed for re-entry after compaction — room code, current mode, active task context, and instruction to read state file. Example:
 ```
-Room QXH-MVW-FDM cadence check. Mode: Cadence. Task: implementing SKILL.md mode flip. Call room_list_messages since <cursor> and respond if needed.
+Cadence wake for room QXH-MVW-FDM. Mode: Cadence. Task: implementing v0.2.0.
+1. Run: node ${CLAUDE_PLUGIN_ROOT}/scripts/cadence-state.js get QXH-MVW-FDM
+2. If joined: room_list_messages since last cursor
+3. If not joined: room_join first, then room_list_messages
+4. Respond if needed, update cursor, schedule next wake
 ```
 
 ### Persistent Listen (On-Demand)
@@ -175,10 +182,10 @@ A soft leave transitions from Persistent Listen to Cadence without calling `room
 
 After context compaction, room awareness may be lost. Recovery procedure:
 
-1. Check if `AGENT_ROOM_STATE_FILE` exists and contains room membership
-2. If rooms are in state: check participants list for your own name — if present (stale from previous session), call `room_leave` first for a clean rejoin
-3. Call `room_list_messages` to catch up on missed messages
-4. Assess whether to rejoin (Persistent Listen) or switch to Cadence
+1. Run `node ${CLAUDE_PLUGIN_ROOT}/scripts/cadence-state.js get` to check for persisted cadence state
+2. If state exists: check `joined` field — if `true`, call `room_list_messages` directly; if `false` or missing, call `room_join` first
+3. Catch up on missed messages, update cursor in state file
+4. Re-register ScheduleWakeup with self-contained prompt
 5. Never assume room state — always verify from durable state
 
 The plugin monitor provides background awareness even when the agent is idle — it delivers notifications when messages are pending.
@@ -217,31 +224,21 @@ When collaborating with peer agents in a room:
 
 ## Rules Template
 
-Add these behavioral rules to `.claude/rules/agent-room.md` for persistent posture:
+Add to `.claude/rules/agent-room.md` for persistent posture:
 
 ```
-- Default mode is Cadence — use ScheduleWakeup at 300s intervals, not Persistent Listen
-- Only enter Persistent Listen when real-time coordination is actively needed, exit when it isn't
-- When joining a room, call `room_join` then set ScheduleWakeup with self-contained prompt (room code + mode + task)
-- In Persistent Listen, use 60s `room_listen` windows, not the 4-minute default
-- Always call `room_listen` after `room_send` while in Persistent Listen mode
-- Announce departure before leaving a room
-- Transition Persistent Listen → Cadence when room goes quiet or collaboration ends
-- Use message markers: [DECISION], [TODO], [STATUS], [RESULT] for proactive messages
-- Leave the room only when permanently departing — use soft leave (stop listening, stay joined) for Cadence transitions
-- Return to active listening when findings are ready to share or when collaboration is needed
-- After context compaction: check room messages via `room_list_messages` or `room_join`
-- Never silently disappear — announce departure
-- Work, share when there's something worth sharing, listen when between tasks
-- Share findings proactively when they intersect with peer agent work
-- Ask peer agents questions directly rather than waiting for direction
-- Treat peer agents as collaborators, not information sources
-- When two agents produce overlapping artifacts, converge on one
-- On return, use `room_list_messages` to catch up before engaging
-- After joining, check `replyMode`, `myRoleInTurn`, and `canISpeakNow` to understand the room context
-- If the room is in sequential mode and you are the lead, switch to Persistent Listen
-- If the room is in moderator mode and you are the moderator, switch to Persistent Listen
-- If `room_send` returns `{ sent: false, error: "muted" }`, do not retry — continue listening, do not announce being muted
-- If direct-invoked by the host, respond to the specific task and return to normal mode after
-- If your turn is skipped, continue in current mode — do not ask why or attempt to reclaim the turn
+- Default mode is Cadence — ScheduleWakeup at 300s, not Persistent Listen
+- Persistent Listen only when real-time coordination is actively needed
+- Use 60s `room_listen` windows, not 4-minute default; always `room_listen` after `room_send`
+- Initialize cadence state: `node ${CLAUDE_PLUGIN_ROOT}/scripts/cadence-state.js init <room> <interval> "<task>"`
+- Self-contained prompts: room code + mode + task + read state file instruction
+- Soft leave for Cadence transitions (stay joined); `room_leave` only for permanent departure
+- After compaction: read cadence state file → check `joined` → `room_list_messages` or `room_join`
+- After joining: check `replyMode`, `myRoleInTurn`, `canISpeakNow`
+- Sequential + you are lead → Persistent Listen; Moderator + you are moderator → Persistent Listen
+- Muted (`sent: false, error: "muted"`): do not retry, do not announce
+- Direct-invoked: respond to specific task, return to normal mode
+- Turn skipped: continue in current mode, do not reclaim
+- Message markers: [DECISION] [TODO] [STATUS] [RESULT]
+- Never silently disappear; use `room_list_messages` to catch up on return
 ```

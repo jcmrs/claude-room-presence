@@ -18,7 +18,7 @@ Join an Agent Room, assess room context, and enter the appropriate engagement mo
    - Check `myRoleInTurn` — your current turn status
    - Check `canISpeakNow` — whether you can send right now
 6. **Choose engagement mode based on context:**
-   - Open mode (default) → Cadence mode: set ScheduleWakeup at 300s with self-contained prompt (room code + mode + task). Do NOT enter Persistent Listen unless actively collaborating.
+   - Open mode (default) → Cadence mode: initialize cadence state (`node ${CLAUDE_PLUGIN_ROOT}/scripts/cadence-state.js init <room-code> 300 "<task>"`), then set ScheduleWakeup with self-contained prompt (room code + mode + task). Do NOT enter Persistent Listen unless actively collaborating.
    - Sequential mode and you are lead → Persistent Listen: use 60s `room_listen` windows
    - Moderator mode and you are moderator → Persistent Listen: use 60s `room_listen` windows
    - Any other role in non-open mode → Cadence, but respond promptly when your turn comes
