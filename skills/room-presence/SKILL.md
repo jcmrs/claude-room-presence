@@ -180,13 +180,12 @@ A soft leave transitions from Persistent Listen to Cadence without calling `room
 
 ## Compaction Recovery
 
-After context compaction, room awareness may be lost. Recovery procedure:
+After context compaction, room awareness may be lost. Use `/room-check` to recover:
 
-1. Run `node ${CLAUDE_PLUGIN_ROOT}/scripts/cadence-state.js get` to check for persisted cadence state
-2. If state exists: check `joined` field — if `true`, call `room_list_messages` directly; if `false` or missing, call `room_join` first
-3. Catch up on missed messages, update cursor in state file
-4. Re-register ScheduleWakeup with self-contained prompt
-5. Never assume room state — always verify from durable state
+1. Run `/room-check` — it reads the cadence state file and recovers automatically
+2. The command branches on the `joined` field: `true` → `room_list_messages` directly; `false` → `room_join` first
+3. After catch-up, cadence is restored with ScheduleWakeup and updated cursor
+4. Manual fallback: `node ${CLAUDE_PLUGIN_ROOT}/scripts/cadence-state.js get` then follow the joined/not-joined path
 
 The plugin monitor provides background awareness even when the agent is idle — it delivers notifications when messages are pending.
 
