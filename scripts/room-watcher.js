@@ -83,7 +83,10 @@ function checkRoom(stateFilePath) {
       stdio: ["pipe", "pipe", "pipe"],
     });
     return output;
-  } catch {
+  } catch (e) {
+    if (e.stderr) {
+      console.error("[agent-room-watcher] hook stderr: " + e.stderr.slice(0, 200));
+    }
     return "";
   }
 }
@@ -95,15 +98,12 @@ function poll() {
   const roomCodes = getRoomCodes(state);
   if (roomCodes.length === 0) return;
 
-  // Check for pending messages
-  for (const code of roomCodes) {
-    const output = checkRoom(STATE_FILE);
-    if (output.includes('"decision"') && output.includes('"block"')) {
-      const reasonMatch = output.match(/"reason"\s*:\s*"([^"]*)"/);
-      const reason = reasonMatch ? reasonMatch[1] : "Messages pending";
-      // Each stdout line is delivered as a notification by the monitor system
-      console.log("[agent-room] " + reason);
-    }
+  // Check for pending messages (once — same state file for all rooms)
+  const output = checkRoom(STATE_FILE);
+  if (output.includes('"decision"') && output.includes('"block"')) {
+    const reasonMatch = output.match(/"reason"\s*:\s*"([^"]*)"/);
+    const reason = reasonMatch ? reasonMatch[1] : "Messages pending";
+    console.log("[agent-room] " + reason);
   }
 
   // Check room mode from cadence state file
@@ -123,6 +123,7 @@ function checkRoomMode(roomCodes) {
   }
 
   let changed = false;
+  let populated = false;
   for (const code of roomCodes) {
     const entry = cadence.rooms[code];
     if (!entry || !entry.replyMode) continue;
@@ -134,9 +135,10 @@ function checkRoomMode(roomCodes) {
       changed = true;
     }
     prevModes[code] = entry.replyMode;
+    populated = true;
   }
 
-  if (changed) {
+  if (changed || populated) {
     try {
       fs.writeFileSync(prevModesFile, JSON.stringify(prevModes, null, 2), "utf8");
     } catch {
@@ -146,6 +148,12 @@ function checkRoomMode(roomCodes) {
 }
 
 // Main loop
+// Pre-flight: verify agent-room-mcp is reachable before entering poll loop
+try {
+  execSync("npx -y agent-room-mcp --version", { timeout: 15000, stdio: "pipe" });
+} catch {
+  console.error("[agent-room-watcher] pre-flight failed: agent-room-mcp not reachable");
+  process.exit(1);
+}
 setInterval(poll, POLL_INTERVAL);
-// Run first check immediately
 poll();
