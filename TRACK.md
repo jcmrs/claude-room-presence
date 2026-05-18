@@ -2,7 +2,8 @@
 
 **Product:** claude-room-presence
 **Archetype:** 10 (Skills + Hooks + Commands) with Monitors
-**Status:** Stage 2 — Repository Scaffolding
+**Status:** v0.2.0 Development (branch: v0.2.0)
+**v0.1.0 tag:** 8a12479 (2026-05-18)
 
 ---
 
@@ -149,3 +150,70 @@ Full validation complete — static and live. Two issues discovered during live 
 ### Future-Agent Note
 
 Stage 4 fully passed. The duplicate hooks issue was an important discovery: plugin.json should NOT explicitly declare `"hooks": "./hooks/hooks.json"` because Claude Code auto-discovers hooks by directory convention. The monitors component loaded without issue — first plugin to use this pattern in production.
+
+---
+
+## v0.1.0 Release — 2026-05-18
+
+**Tag:** v0.1.0 (8a12479)
+**Agents:** DEVELOPER + ENGINEER (collaborative, room QXH-MVW-FDM)
+**Session:** ~6 hours of live collaborative development and testing
+
+### Shipped
+
+- Monitors: background room message watcher (first plugin to use monitors component)
+- Skills: full behavioral methodology (Cadence/Persistent Listen/Idle modes)
+- Skills: room context awareness (open/sequential/moderator modes, role implications)
+- Skills: interaction events (muting, direct-invoke, turn skipping)
+- Commands: room-join (context-aware), room-cadence, room-leave, room-status
+- Marketplace distribution via .claude-plugin/marketplace.json
+- Agent naming convention (project directory name as display name)
+- Clean rejoin pattern (room_leave before room_join)
+- Self-contained cadence prompt pattern for compaction recovery
+- 3 upstream feature request issues tracked (#1, #2, #3)
+
+### Session Learnings
+
+1. **Cadence is default, Persistent Listen is on-demand** — room_listen blocks single execution thread for 4 minutes at default timeout
+2. **Room modes exist** — agent-room-mcp supports open/sequential/moderator; plugin must inform agents about them
+3. **Leave/rejoin cycle creates noise** — each rejoin sends announcement, accumulates stale participants. Soft leave needed.
+4. **Cadence doesn't survive interruption** — ScheduleWakeup is a hint, not a contract. Prompts must be self-contained.
+5. **Agent-facing means informing, not interpreting** — the plugin must tell agents what rooms expect, not leave them to discover it
+
+---
+
+## v0.2.0 Backlog — "Reliable Cadence + Clean Recovery"
+
+**Branch:** v0.2.0
+**Theme:** Make room presence actually persistent through interruptions, compaction, and real conditions
+**Status:** In Progress
+
+### Plugin Improvements (owned by DEVELOPER + ENGINEER)
+
+| # | Item | Owner | Description |
+|---|------|-------|-------------|
+| 1 | Soft leave pattern | ENGINEER | Stop listening without leaving room. Eliminates rejoin noise and stale participant accumulation. |
+| 2 | Cadence survival through interruptions | DEVELOPER | ScheduleWakeup prompts must be self-contained AND cadence must resume after interruption. Command should generate prompts automatically. |
+| 3 | Compaction recovery automation | DEVELOPER | Automate: check state file → detect stale participants → clean rejoin → restore cadence with correct cursor. Currently manual procedure in SKILL.md. |
+| 4 | Monitor room-mode polling | ENGINEER | Monitor should detect room mode transitions (open → sequential) so agent adapts without waiting for next check-in. |
+| 5 | Monitor notification path validation | DEVELOPER | Validate that monitor notifications reach the agent during active work, not just during idle. First plugin using monitors — no production precedent. |
+| 6 | Ad hoc unwinding | Shared | Remove .claude/hooks/asyncRewake-room-check.sh and PostToolUse hook from settings.json. Plugin replaces this infrastructure. |
+| 7 | README workflow rewrite | Shared | Lead with agent workflow (join → context → engage → leave), not installation. SKILL.md is substantial — README should guide agents and humans to it. |
+| 8 | Room scope documentation | Shared | Document the 2-3 agent limit for effective collaboration in broadcast-only rooms. Practical limitation from fragility analysis. |
+| 9 | AGENT_ROOM_STATE_FILE documentation | Shared | Add to room-doctor command and README. PPID assumption breaks across compaction; this env var is the fix. |
+
+### Upstream Dependencies (tracked as GitHub issues)
+
+| # | Item | Issue | Priority |
+|---|------|-------|----------|
+| 10 | Participant TTL/heartbeat | #1 | High — stale participants from crashes are a live problem |
+| 11 | Message addressing | #2 | Medium — broadcast-only scales poorly beyond 3 agents |
+| 12 | Cross-room inbox | #3 | Low — nice-to-have |
+
+### Testing Gaps
+
+| # | Item | Owner | Description |
+|---|------|-------|-------------|
+| 13 | Crash-recovery test | ENGINEER | Terminate session without room_leave, then test clean rejoin. Documented but not tested. |
+| 14 | Monitor stress test | ENGINEER | Multiple rooms, concurrent state file access, notification flooding. No production precedent. |
+
